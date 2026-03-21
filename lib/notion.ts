@@ -9,9 +9,9 @@ export async function getGorokuData() {
   let cursor: string | undefined = undefined;
 
   try {
-    // hasMore が true の間、ループして全部持ってくる
     while (hasMore) {
-      const res = await fetch(`https://api.notion.com/v1/databases/${databaseId}/query`, {
+      // fetchの戻り値を Response 型として扱うよう明示（または単純に新しく定義）
+      const response = await fetch(`https://api.notion.com/v1/databases/${databaseId}/query`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -19,23 +19,24 @@ export async function getGorokuData() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          start_cursor: cursor, // 「ここから続き」を指定
+          start_cursor: cursor,
           page_size: 100,
         }),
         cache: 'no-store'
       });
 
-      if (!res.ok) break;
+      if (!response.ok) {
+        console.error("Notion API error:", response.status);
+        break;
+      }
 
-      const data = await res.json();
+      const data = await response.json();
       allResults = [...allResults, ...data.results];
 
-      // 続きがあるかチェック
       hasMore = data.has_more;
       cursor = data.next_cursor;
     }
 
-    // 最後に全件を整形して返す
     return allResults.map((page: any) => ({
       id: page.id,
       text: page.properties.OKITO語録?.title[0]?.plain_text || "無題",
