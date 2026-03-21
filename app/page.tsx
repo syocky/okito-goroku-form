@@ -124,6 +124,7 @@ export default function Home() {
           </label>
           {isMounted ? (
             <Select
+              instanceId="goroku-select" // これを追加！適当な名前でOKです
               isMulti
               options={filteredOptions}
               placeholder="キーワードを入力..."
