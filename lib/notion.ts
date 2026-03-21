@@ -10,8 +10,8 @@ export async function getGorokuData() {
 
   try {
     while (hasMore) {
-      // fetchの戻り値を Response 型として扱うよう明示（または単純に新しく定義）
-      const response = await fetch(`https://api.notion.com/v1/databases/${databaseId}/query`, {
+      // 型を Response と明示的に指定します
+      const response: Response = await fetch(`https://api.notion.com/v1/databases/${databaseId}/query`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -30,8 +30,12 @@ export async function getGorokuData() {
         break;
       }
 
-      const data = await response.json();
-      allResults = [...allResults, ...data.results];
+      // JSONデータも any型として受け取るよう明示
+      const data: any = await response.json();
+      
+      if (data.results) {
+        allResults = [...allResults, ...data.results];
+      }
 
       hasMore = data.has_more;
       cursor = data.next_cursor;
