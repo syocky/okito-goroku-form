@@ -94,19 +94,38 @@ export default function Home() {
             priority                 // ページ読み込み時に最優先で表示させる
           />
         </div>
-        <h1 className="text-3xl font-black mb-2 text-gray-900 tracking-tight">あなたが選ぶ！<br/>OKITO語録大賞 投票フォーム</h1>
-        <p className="text-gray-500 mb-10 text-sm">
-          あなたの好きなOKITO語録を最大5つまで選んで送信してください。<br/>
-          OKITO語録集は、
-            <a
-              href="https://hill-growth-b59.notion.site/OKITO-278663e67cd080d8889dd3af35e3bae9"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-600 underline hover:text-blue-800 font-bold decoration-2 underline-offset-4">
-              こちら
-            </a>
-            からご覧ください。
-        </p>
+
+        <div className="text-center mb-8">
+          <h1 className="text-2xl md:text-3xl font-black text-gray-900 tracking-tighter leading-tight">
+            あなたが選ぶ！<br />
+            OKITO語録大賞
+            <br className="md:hidden" /> {/* ★PC(md以上)では非表示、スマホでは改行 */}
+            <span className="md:ml-2">投票フォーム</span> {/* ★PCでは少し左に余白を入れる */}
+          </h1>
+          <br />
+          <div className="text-center mb-10 max-w-sm md:max-w-2xl mx-auto px-4"> 
+            <p className="text-sm md:text-base text-gray-600 leading-relaxed">
+              あなたの好きなOKITO語録を<br className="md:hidden" />
+              最大5つまで選んで送信してください。
+            </p>
+            
+            <p className="text-sm md:text-base text-gray-600 mt-2">
+              {/* inline-block を使うことで、この塊の中では改行させないようにします */}
+              <span className="inline-block">OKITO語録集は、</span>
+              <span className="inline-block">
+                <a 
+                  href="https://hill-growth-b59.notion.site/OKITO-278663e67cd080d8889dd3af35e3bae9" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="text-blue-600 underline hover:text-blue-800 font-bold decoration-2 underline-offset-4 mx-1"
+                >
+                  こちら
+                </a>
+                からご覧ください。
+              </span>
+            </p>
+          </div>
+        </div>
         {/* --- 絞り込みセクション --- */}
         <section className="mb-8">
           <label className="block text-xs font-black text-blue-600 uppercase tracking-widest mb-3">
