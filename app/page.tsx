@@ -80,8 +80,16 @@ export default function Home() {
     );
   }
 
+  // 背景のスタイルを変数に切り出しておきます
+  const dotBackground = isMounted 
+    ? { backgroundImage: 'radial-gradient(#e5e7eb 1px, transparent 1px)', backgroundSize: '24px 24px' }
+    : {}; // サーバーレンダリング時は背景なしにして、ブラウザでのみ背景をつける
+
   return (
-    <main className="min-h-screen bg-gray-50 p-4 md:p-12 font-sans">
+    <main 
+      className="min-h-screen bg-white p-4 md:p-12 font-sans transition-all duration-500"
+      style={dotBackground}
+    >
       <div className="max-w-2xl mx-auto bg-white p-6 md:p-10 rounded-3xl shadow-2xl border border-gray-100">
         {/* --- ロゴ画像セクション --- */}
         <div className="flex justify-center mb-6"> {/* 中央寄せ、下の余白 */}
