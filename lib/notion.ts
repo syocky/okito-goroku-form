@@ -2,39 +2,48 @@ export async function getGorokuData() {
   const token = process.env.NOTION_TOKEN;
   const databaseId = process.env.NOTION_DATABASE_ID;
 
-  if (!token || !databaseId) {
-    console.error("設定エラー: .env.local にトークンまたはIDがありません。");
-    return [];
-  }
+  if (!token || !databaseId) return [];
+
+  let allResults: any[] = [];
+  let hasMore = true;
+  let cursor: string | undefined = undefined;
 
   try {
-    const res = await fetch(`https://api.notion.com/v1/databases/${databaseId}/query`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Notion-Version': '2022-06-28', // Notion APIのバージョン指定
-        'Content-Type': 'application/json',
-      },
-      cache: 'no-store' // 常に最新データを取得
-    });
+    // hasMore が true の間、ループして全部持ってくる
+    while (hasMore) {
+      const res = await fetch(`https://api.notion.com/v1/databases/${databaseId}/query`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Notion-Version': '2022-06-28',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          start_cursor: cursor, // 「ここから続き」を指定
+          page_size: 100,
+        }),
+        cache: 'no-store'
+      });
 
-    if (!res.ok) {
-      const errorData = await res.json();
-      console.error("Notion APIエラー詳細:", errorData);
-      return [];
+      if (!res.ok) break;
+
+      const data = await res.json();
+      allResults = [...allResults, ...data.results];
+
+      // 続きがあるかチェック
+      hasMore = data.has_more;
+      cursor = data.next_cursor;
     }
 
-    const data = await res.json();
-
-    // 取得したデータを整形
-    return data.results.map((page: any) => ({
+    // 最後に全件を整形して返す
+    return allResults.map((page: any) => ({
       id: page.id,
-      // Notionの列名が「名前」「ジャンル」である前提です
-      text: page.properties.OKITO語録?.title[0]?.plain_text || "タイトルなし",
+      text: page.properties.OKITO語録?.title[0]?.plain_text || "無題",
       genre: page.properties.カテゴリー?.select?.name || "未分類",
     }));
+
   } catch (err) {
-    console.error("接続エラー:", err);
+    console.error("全件取得エラー:", err);
     return [];
   }
 }
