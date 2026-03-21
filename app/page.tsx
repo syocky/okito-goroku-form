@@ -9,9 +9,11 @@ export default function Home() {
   const [selectedGorokus, setSelectedGorokus] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isMounted, setIsMounted] = useState(false); // これを追加
 
   // 1. 起動時にNotionから語録データを取得
   useEffect(() => {
+    setIsMounted(true); // ブラウザで読み込まれたら true にする
     const fetchData = async () => {
       try {
         const res = await fetch('/api/goroku');
@@ -110,24 +112,28 @@ export default function Home() {
           <label className="block text-xs font-black text-blue-600 uppercase tracking-widest mb-3">
             2. 語録を検索・追加（あと {5 - selectedGorokus.length} つ選択可能）
           </label>
-          <Select
-            isMulti
-            options={filteredOptions}
-            placeholder="キーワードを入力..."
-            onChange={(values: any) => setSelectedGorokus(values || [])}
-            isOptionDisabled={() => selectedGorokus.length >= 5}
-            noOptionsMessage={() => "見つかりません"}
-            className="text-sm shadow-sm"
-            styles={{
-              control: (base) => ({
-                ...base,
-                borderRadius: '1rem',
-                padding: '4px',
-                borderColor: '#e5e7eb',
-                '&:hover': { borderColor: '#3b82f6' }
-              }),
-            }}
-          />
+          {isMounted ? (
+            <Select
+              isMulti
+              options={filteredOptions}
+              placeholder="キーワードを入力..."
+              onChange={(values: any) => setSelectedGorokus(values || [])}
+              isOptionDisabled={() => selectedGorokus.length >= 5}
+              noOptionsMessage={() => "見つかりません"}
+              className="text-sm shadow-sm"
+              styles={{
+                control: (base) => ({
+                  ...base,
+                  borderRadius: '1rem',
+                  padding: '4px',
+                  borderColor: '#e5e7eb',
+                  '&:hover': { borderColor: '#3b82f6' }
+                }),
+              }}
+            />
+          ) : (
+            <div className="h-10 bg-gray-100 rounded-xl animate-pulse"></div> // 読み込み中のダミー
+          )}
         </section>
 
         {/* --- 現在の選択リスト --- */}
