@@ -74,7 +74,7 @@ export default function Home() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50 text-gray-600">
-        <p className="animate-pulse font-bold text-lg">Notionから語録を読み込み中...</p>
+        <p className="animate-pulse font-bold text-lg">OKITO語録を読み込み中...</p>
       </div>
     );
   }
@@ -82,13 +82,23 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-gray-50 p-4 md:p-12 font-sans">
       <div className="max-w-2xl mx-auto bg-white p-6 md:p-10 rounded-3xl shadow-2xl border border-gray-100">
-        <h1 className="text-3xl font-black mb-2 text-gray-900 tracking-tight">語録アンケート</h1>
-        <p className="text-gray-500 mb-10 text-sm">気になる語録を最大5つまで選んで送信してください。</p>
-
+        <h1 className="text-3xl font-black mb-2 text-gray-900 tracking-tight">あなたが選ぶ！<br/>OKITO語録大賞 投票フォーム</h1>
+        <p className="text-gray-500 mb-10 text-sm">
+          あなたの好きなOKITO語録を最大5つまで選んで送信してください。<br/>
+          OKITO語録集は、
+            <a
+              href="https://hill-growth-b59.notion.site/OKITO-278663e67cd080d8889dd3af35e3bae9"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 underline hover:text-blue-800 font-bold decoration-2 underline-offset-4">
+              こちら
+            </a>
+            からご覧ください。
+        </p>
         {/* --- 絞り込みセクション --- */}
         <section className="mb-8">
           <label className="block text-xs font-black text-blue-600 uppercase tracking-widest mb-3">
-            1. ジャンルで絞り込む
+            1. カテゴリーで絞り込む
           </label>
           <div className="flex flex-wrap gap-2">
             {genres.map((g) => (
@@ -110,7 +120,7 @@ export default function Home() {
         {/* --- 検索・選択セクション --- */}
         <section className="mb-10">
           <label className="block text-xs font-black text-blue-600 uppercase tracking-widest mb-3">
-            2. 語録を検索・追加（あと {5 - selectedGorokus.length} つ選択可能）
+            2. OKITO語録を検索・追加（あと {5 - selectedGorokus.length} つ選択可能）
           </label>
           {isMounted ? (
             <Select
@@ -127,8 +137,45 @@ export default function Home() {
                   borderRadius: '1rem',
                   padding: '4px',
                   borderColor: '#e5e7eb',
+                  backgroundColor: 'white', // 背景を白に固定
+                  color: '#333',            // 文字色を濃いグレーに
                   '&:hover': { borderColor: '#3b82f6' }
                 }),
+                // 検索入力中の文字色
+                input: (base) => ({
+                  ...base,
+                  color: '#333',
+                }),
+                // 選択肢（プルダウンの中身）のスタイル
+                option: (base, state) => ({
+                  ...base,
+                  backgroundColor: state.isFocused ? '#f0f7ff' : 'white', // ホバー時は薄い青
+                  color: '#333', // ★ここが重要！選択肢の文字を濃いグレーにする
+                  fontSize: '14px',
+                  padding: '10px',
+                  '&:active': {
+                    backgroundColor: '#e0efff',
+                  },
+                }),
+                // 選択した後に表示されるラベルの文字色
+                multiValueLabel: (base) => ({
+                  ...base,
+                  color: '#1e40af', // 選択済みは濃い青にすると見やすいです
+                  fontWeight: 'bold',
+                }),
+                // プルダウンメニュー自体の背景
+                menu: (base) => ({
+                  ...base,
+                  zIndex: 9999,
+                  backgroundColor: 'white',
+                  borderRadius: '1rem',
+                  boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
+                }),
+                // 「見つかりません」などのメッセージ色
+                noOptionsMessage: (base) => ({
+                  ...base,
+                  color: '#999',
+                })
               }}
             />
           ) : (
@@ -139,7 +186,7 @@ export default function Home() {
         {/* --- 現在の選択リスト --- */}
         {selectedGorokus.length > 0 && (
           <section className="mb-10 p-5 bg-blue-50 rounded-2xl border border-blue-100 animate-in fade-in slide-in-from-bottom-2">
-            <h3 className="text-blue-900 font-black text-sm mb-3 underline decoration-blue-200 decoration-4">選択中の語録：</h3>
+            <h3 className="text-blue-900 font-black text-sm mb-3 underline decoration-blue-200 decoration-4">選択中のOKITO語録：</h3>
             <ul className="space-y-2">
               {selectedGorokus.map((s) => (
                 <li key={s.value} className="text-sm text-blue-800 flex items-start">
