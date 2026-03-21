@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useEffect } from 'react';
+import Image from 'next/image';
 import Select from 'react-select';
 
 export default function Home() {
@@ -82,6 +83,17 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-gray-50 p-4 md:p-12 font-sans">
       <div className="max-w-2xl mx-auto bg-white p-6 md:p-10 rounded-3xl shadow-2xl border border-gray-100">
+        {/* --- ロゴ画像セクション --- */}
+        <div className="flex justify-center mb-6"> {/* 中央寄せ、下の余白 */}
+          <Image
+            src="/logo.jpg"          // ★ publicフォルダに入れたファイル名（先頭に / をつける）
+            alt="OKITO語録ロゴ"      // 画像の説明（必須）
+            width={150}              // ★表示したい横幅（ピクセル）
+            height={50}              // ★表示したい縦幅（ピクセル、アスペクト比を保つため大体でOK）
+            className="object-contain" // 画像が潰れないようにする設定
+            priority                 // ページ読み込み時に最優先で表示させる
+          />
+        </div>
         <h1 className="text-3xl font-black mb-2 text-gray-900 tracking-tight">あなたが選ぶ！<br/>OKITO語録大賞 投票フォーム</h1>
         <p className="text-gray-500 mb-10 text-sm">
           あなたの好きなOKITO語録を最大5つまで選んで送信してください。<br/>
