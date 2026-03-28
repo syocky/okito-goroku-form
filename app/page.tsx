@@ -62,7 +62,11 @@ export default function Home() {
         if (item.sortOrder === 999) return false;
         return selectedGenre === 'すべて' || item.genre === selectedGenre;
       })
-      .map((item) => ({ value: item.id, label: item.text, genre: item.genre }));
+      .map((item) => ({ value: item.id, label: item.text, genre: item.genre }))
+      .sort((a, b) => {
+        // localeCompareを使うことで、アルファベットだけでなく日本語（五十音）も正しく昇順になります
+        return a.label.localeCompare(b.label, 'ja');
+      });
   }, [selectedGenre, allData]);
 
   // 4. 送信処理
