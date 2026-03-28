@@ -1,3 +1,5 @@
+// lib/notion.ts
+
 export async function getGorokuData() {
   const token = process.env.NOTION_TOKEN;
   const databaseId = process.env.NOTION_DATABASE_ID;
@@ -10,7 +12,6 @@ export async function getGorokuData() {
 
   try {
     while (hasMore) {
-      // 型を Response と明示的に指定します
       const response: Response = await fetch(`https://api.notion.com/v1/databases/${databaseId}/query`, {
         method: 'POST',
         headers: {
@@ -21,22 +22,31 @@ export async function getGorokuData() {
         body: JSON.stringify({
           start_cursor: cursor,
           page_size: 100,
+          // --- フィルターの修正：999（未設定）以外のものを取得 ---
+          filter: {
+            property: "並び順",
+            formula: {
+              number: {
+                does_not_equal: 999
+              }
+            }
+          },
+          // --- ソートの追加 ---
+          sorts: [
+            {
+              property: "並び順",
+              direction: "ascending"
+            }
+          ]
         }),
         cache: 'no-store'
       });
 
-      if (!response.ok) {
-        console.error("Notion API error:", response.status);
-        break;
-      }
-
-      // JSONデータも any型として受け取るよう明示
+      if (!response.ok) break;
       const data: any = await response.json();
-      
       if (data.results) {
         allResults = [...allResults, ...data.results];
       }
-
       hasMore = data.has_more;
       cursor = data.next_cursor;
     }
@@ -45,10 +55,11 @@ export async function getGorokuData() {
       id: page.id,
       text: page.properties.OKITO語録?.title[0]?.plain_text || "無題",
       genre: page.properties.カテゴリー?.select?.name || "未分類",
+      // --- 関数プロパティ（Formula）からの数値取得 ---
+      sortOrder: page.properties.並び順?.formula?.number || 999,
     }));
 
   } catch (err) {
-    console.error("全件取得エラー:", err);
     return [];
   }
 }
