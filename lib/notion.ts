@@ -55,7 +55,11 @@ export async function getGorokuData() {
     }
 
     return allResults.map((page: any) => {
+      const gameName = page.properties['ゲーム名']?.select?.name || 'その他';
       const genre = page.properties.カテゴリー?.select?.name || '未分類';
+
+      const titleArray = page.properties['OKITO語録']?.title || [];
+      const text = titleArray.map((t: any) => t.plain_text).join('') || '無題';
 
       // カテゴリー名から色を判定するルール
       const colorMap: Record<string, string> = {
@@ -69,11 +73,15 @@ export async function getGorokuData() {
         キャラクター: 'purple',
         立ち回り: 'pink',
         サーモンラン: 'blue',
+        モブ: 'purple',
+        建築物: 'yellow',
+        アイテム: 'red'
       };
 
       return {
         id: page.id,
-        text: page.properties.OKITO語録?.title[0]?.plain_text || '無題',
+        text: text,
+        game: gameName, // ★追加
         genre: genre,
         genreColor: colorMap[genre] || 'gray', // 設定にないものはグレー
         sortOrder: page.properties.並び順?.formula?.number || 999,

@@ -6,6 +6,7 @@ import Select from 'react-select';
 
 export default function Home() {
   const [allData, setAllData] = useState<any[]>([]);
+  const [selectedGame, setSelectedGame] = useState('すべて');
   const [selectedGenre, setSelectedGenre] = useState('すべて');
   const [selectedGorokus, setSelectedGorokus] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -31,46 +32,57 @@ export default function Home() {
     fetchData();
   }, []);
 
-  // 2. ジャンル一覧を自動生成（「並び順」関数の数字に基づいてソート）
+  // 2. ゲーム名一覧を自動生成（重複排除）
+  const games = useMemo(() => {
+    if (allData.length === 0) return ['すべて'];
+    const gameSet = new Set<string>();
+    allData.forEach((item) => {
+      if (item.sortOrder !== 999) gameSet.add(item.game);
+    });
+    return ['すべて', ...Array.from(gameSet)];
+  }, [allData]);
+
+  // 3. 選択されたゲームに紐づく「カテゴリー一覧」を自動生成（並び順順序を維持）
   const genres = useMemo(() => {
     if (allData.length === 0) return ['すべて'];
-
     const genreMap = new Map<string, number>();
-
+    
     allData.forEach((item) => {
-      // 並び順が999（未設定）のものはカテゴリー一覧に出さない
       if (item.sortOrder !== 999) {
-        if (
-          !genreMap.has(item.genre) ||
-          item.sortOrder < (genreMap.get(item.genre) ?? 999)
-        ) {
-          genreMap.set(item.genre, item.sortOrder);
+        // ★選択されたゲームが「すべて」か、あるいはアイテムのゲーム名と一致する場合のみカテゴリーを抽出
+        if (selectedGame === 'すべて' || item.game === selectedGame) {
+          if (!genreMap.has(item.genre) || item.sortOrder < (genreMap.get(item.genre) ?? 999)) {
+            genreMap.set(item.genre, item.sortOrder);
+          }
         }
       }
     });
 
-    // 数字の小さい順に並び替え
-    const sortedGenres = Array.from(genreMap.entries())
+    const sorted = Array.from(genreMap.entries())
       .sort((a, b) => a[1] - b[1])
       .map((entry) => entry[0]);
+    return ['すべて', ...sorted];
+  }, [allData, selectedGame]);
 
-    return ['すべて', ...sortedGenres];
-  }, [allData]);
+  // ゲーム名が切り替わったら、選択中のカテゴリーをリセットする
+  useEffect(() => {
+    setSelectedGenre('すべて');
+  }, [selectedGame]);
 
-  // 3. 選択されたジャンルで検索候補をフィルタリング（未設定999は除外）
+  // 4. プルダウン選択肢（ゲーム ＋ カテゴリーの2段階絞り込み ＋ 五十音順ソート）
   const filteredOptions = useMemo(() => {
     return allData
       .filter((item) => {
-        // 並び順が999のものは物理的に表示させない
         if (item.sortOrder === 999) return false;
-        return selectedGenre === 'すべて' || item.genre === selectedGenre;
+        // ★ゲームの絞り込み
+        const matchGame = selectedGame === 'すべて' || item.game === selectedGame;
+        // ★カテゴリーの絞り込み
+        const matchGenre = selectedGenre === 'すべて' || item.genre === selectedGenre;
+        return matchGame && matchGenre;
       })
-      .map((item) => ({ value: item.id, label: item.text, genre: item.genre }))
-      .sort((a, b) => {
-        // localeCompareを使うことで、アルファベットだけでなく日本語（五十音）も正しく昇順になります
-        return a.label.localeCompare(b.label, 'ja');
-      });
-  }, [selectedGenre, allData]);
+      .map((item) => ({ value: item.id, label: item.text }))
+      .sort((a, b) => a.label.localeCompare(b.label, 'ja'));
+  }, [selectedGame, selectedGenre, allData]);
 
   // 4. 送信処理
   const handleSubmit = async () => {
@@ -116,7 +128,24 @@ export default function Home() {
       }
     : {};
 
-  // 色名からTailwindのクラスを返す関数
+  // ゲーム名ごとのスタイル定義
+  const getGameStyle = (gameName: string, isActive: boolean) => {
+    if (gameName === 'スプラトゥーン') {
+      return isActive
+        ? 'bg-yellow-400 text-slate-900 border-yellow-400 shadow-lg shadow-yellow-100 font-black'
+        : 'bg-yellow-50 text-yellow-700 border-yellow-200 hover:bg-yellow-100';
+    }
+    if (gameName === 'マインクラフト') {
+      return isActive
+        ? 'bg-green-600 text-white border-green-600 shadow-lg shadow-green-100 font-black'
+        : 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100';
+    }
+    // 「すべて」やその他のゲームのスタイル
+    return isActive
+      ? 'bg-slate-800 text-white border-slate-800 shadow-lg'
+      : 'bg-slate-100 text-slate-600 border-transparent hover:bg-slate-200';
+  };
+  // カテゴリーのスタイル定義
   const getGenreStyle = (color: string, isActive: boolean) => {
     const styles: Record<string, string> = {
       red: isActive
@@ -198,38 +227,53 @@ export default function Home() {
           </p>
         </div>
 
-        {/* 1. カテゴリー選択 */}
+        {/* 1. ゲーム名選択セクション */}
+        <section className="mb-8">
+          <label className="mb-4 block text-xs font-black uppercase tracking-widest text-blue-600">1. ゲーム名で絞り込む</label>
+          <div className="flex flex-wrap gap-2">
+            {games.map((gameName) => (
+              <button
+                key={gameName}
+                onClick={() => setSelectedGame(gameName)}
+                className={`rounded-full border px-5 py-2 text-sm font-bold transition-all duration-300 ${getGameStyle(
+                  gameName,
+                  selectedGame === gameName
+                )} ${selectedGame === gameName ? 'scale-105' : ''}`}
+              >
+                {gameName}
+              </button>
+            ))}
+          </div>
+        </section>
+
+        {/* 2. カテゴリー選択セクション */}
         <section className="mb-10">
-          <label className="mb-4 block text-xs font-black tracking-widest text-blue-600 uppercase">
-            1. カテゴリーで絞り込む
+          <label className="mb-4 block text-xs font-black uppercase tracking-widest text-blue-600">
+            2. カテゴリーでさらに絞り込む
           </label>
           <div className="flex flex-wrap gap-2">
-            {genres.map((genreName) => {
-              // そのカテゴリーに属する最初のデータの「色」を取得
-              const genreColor =
-                allData.find((d) => d.genre === genreName)?.genreColor ||
-                'gray';
-
+            {genres.map((g) => {
+              const color = allData.find((d) => d.genre === g)?.genreColor || 'gray';
               return (
                 <button
-                  key={genreName}
-                  onClick={() => setSelectedGenre(genreName)}
+                  key={g}
+                  onClick={() => setSelectedGenre(g)}
                   className={`rounded-full border px-4 py-2 text-sm font-bold transition-all duration-300 ${getGenreStyle(
-                    genreColor,
-                    selectedGenre === genreName,
-                  )} ${selectedGenre === genreName ? 'scale-105 shadow-md' : 'border-transparent'}`}
+                    color,
+                    selectedGenre === g,
+                  )} ${selectedGenre === g ? 'scale-105 shadow-md' : 'border-transparent'}`}
                 >
-                  {genreName}
+                  {g}
                 </button>
               );
             })}
           </div>
         </section>
 
-        {/* 2. 語録選択 */}
+        {/* 3. 語録選択 */}
         <section className="mb-10">
           <label className="mb-4 block text-xs font-black tracking-widest text-blue-600 uppercase">
-            2. OKITO語録を検索・追加（あと {5 - selectedGorokus.length} つ）
+            3. OKITO語録を検索・追加（あと {5 - selectedGorokus.length} つ）
           </label>
           {isMounted ? (
             <Select
@@ -281,6 +325,8 @@ export default function Home() {
                     ...base,
                     borderRadius: '9999px',
                     backgroundColor: bgColors[color] || '#f3f4f6',
+                    maxWidth: 'none',
+                    flexWrap: 'wrap'
                   };
                 },
 
@@ -305,6 +351,9 @@ export default function Home() {
                     color: textColors[color] || '#374151',
                     fontWeight: 'bold',
                     paddingLeft: '8px',
+                    overflow: 'visible',
+                    whiteSpace: 'normal',  // 文字が三点リーダー（…）に潰れるのを防ぐ
+                    textOverflow: 'clip',   // 省略記号をオフに
                   };
                 },
 
