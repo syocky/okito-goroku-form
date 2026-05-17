@@ -38,9 +38,13 @@ export default function Thanks() {
         </h1>
 
         <p className="mt-6 text-lg leading-relaxed text-gray-600">
-          ご投票いただいた内容が送信されました。
+          ご投票いただいた内容が
+          <span className="block md:hidden" />
+          送信されました。
           <br />
-          OKITO語録大賞の発表をお楽しみに！
+          OKITO語録大賞の発表を
+          <span className="block md:hidden" />
+          お楽しみに！
         </p>
       </div>
     </main>
