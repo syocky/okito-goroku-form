@@ -3,8 +3,10 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import Image from 'next/image';
 import Select from 'react-select';
+import { useRouter } from 'next/navigation';
 
 export default function Home() {
+  const router = useRouter();
   const [allData, setAllData] = useState<any[]>([]);
   const [selectedGame, setSelectedGame] = useState('すべて');
   const [selectedGenre, setSelectedGenre] = useState('すべて');
@@ -46,12 +48,15 @@ export default function Home() {
   const genres = useMemo(() => {
     if (allData.length === 0) return ['すべて'];
     const genreMap = new Map<string, number>();
-    
+
     allData.forEach((item) => {
       if (item.sortOrder !== 999) {
         // ★選択されたゲームが「すべて」か、あるいはアイテムのゲーム名と一致する場合のみカテゴリーを抽出
         if (selectedGame === 'すべて' || item.game === selectedGame) {
-          if (!genreMap.has(item.genre) || item.sortOrder < (genreMap.get(item.genre) ?? 999)) {
+          if (
+            !genreMap.has(item.genre) ||
+            item.sortOrder < (genreMap.get(item.genre) ?? 999)
+          ) {
             genreMap.set(item.genre, item.sortOrder);
           }
         }
@@ -75,9 +80,11 @@ export default function Home() {
       .filter((item) => {
         if (item.sortOrder === 999) return false;
         // ★ゲームの絞り込み
-        const matchGame = selectedGame === 'すべて' || item.game === selectedGame;
+        const matchGame =
+          selectedGame === 'すべて' || item.game === selectedGame;
         // ★カテゴリーの絞り込み
-        const matchGenre = selectedGenre === 'すべて' || item.genre === selectedGenre;
+        const matchGenre =
+          selectedGenre === 'すべて' || item.genre === selectedGenre;
         return matchGame && matchGenre;
       })
       .map((item) => ({ value: item.id, label: item.text }))
@@ -98,8 +105,9 @@ export default function Home() {
       });
 
       if (res.ok) {
-        alert('Notionの回答用データベースに保存しました！');
+        //alert('Notionの回答用データベースに保存しました！');
         setSelectedGorokus([]);
+        router.push('/thanks'); // サンクスページへ自動でジャンプ！
       } else {
         alert('保存に失敗しました。');
       }
@@ -229,7 +237,9 @@ export default function Home() {
 
         {/* 1. ゲーム名選択セクション */}
         <section className="mb-8">
-          <label className="mb-4 block text-xs font-black uppercase tracking-widest text-blue-600">1. ゲーム名で絞り込む</label>
+          <label className="mb-4 block text-xs font-black tracking-widest text-blue-600 uppercase">
+            1. ゲーム名で絞り込む
+          </label>
           <div className="flex flex-wrap gap-2">
             {games.map((gameName) => (
               <button
@@ -237,7 +247,7 @@ export default function Home() {
                 onClick={() => setSelectedGame(gameName)}
                 className={`rounded-full border px-5 py-2 text-sm font-bold transition-all duration-300 ${getGameStyle(
                   gameName,
-                  selectedGame === gameName
+                  selectedGame === gameName,
                 )} ${selectedGame === gameName ? 'scale-105' : ''}`}
               >
                 {gameName}
@@ -248,12 +258,13 @@ export default function Home() {
 
         {/* 2. カテゴリー選択セクション */}
         <section className="mb-10">
-          <label className="mb-4 block text-xs font-black uppercase tracking-widest text-blue-600">
+          <label className="mb-4 block text-xs font-black tracking-widest text-blue-600 uppercase">
             2. カテゴリーでさらに絞り込む
           </label>
           <div className="flex flex-wrap gap-2">
             {genres.map((g) => {
-              const color = allData.find((d) => d.genre === g)?.genreColor || 'gray';
+              const color =
+                allData.find((d) => d.genre === g)?.genreColor || 'gray';
               return (
                 <button
                   key={g}
@@ -326,7 +337,7 @@ export default function Home() {
                     borderRadius: '9999px',
                     backgroundColor: bgColors[color] || '#f3f4f6',
                     maxWidth: 'none',
-                    flexWrap: 'wrap'
+                    flexWrap: 'wrap',
                   };
                 },
 
@@ -352,8 +363,8 @@ export default function Home() {
                     fontWeight: 'bold',
                     paddingLeft: '8px',
                     overflow: 'visible',
-                    whiteSpace: 'normal',  // 文字が三点リーダー（…）に潰れるのを防ぐ
-                    textOverflow: 'clip',   // 省略記号をオフに
+                    whiteSpace: 'normal', // 文字が三点リーダー（…）に潰れるのを防ぐ
+                    textOverflow: 'clip', // 省略記号をオフに
                   };
                 },
 
